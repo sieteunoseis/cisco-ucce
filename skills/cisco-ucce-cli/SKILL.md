@@ -11,16 +11,16 @@ metadata:
 
 Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise 12.6. Covers 5 API services: AW Config/Status, Finesse, CVP, Diagnostic Portal, and VVB.
 
-## Prerequisites
+## Setup
 
 ```bash
-# From the project directory
-npm link
-# Or run directly
-node bin/cisco-ucce.js --help
+# Install globally
+npm install -g cisco-ucce
+# Or run without installing
+npx cisco-ucce --help
 ```
 
-## Setup
+### Configuration
 
 ```bash
 # Add a cluster
@@ -49,7 +49,7 @@ Config supports `<ss:ID:field>` placeholders for ss-cli integration (optional).
 --no-audit                     (disable audit logging)
 ```
 
-## Troubleshooting Workflows
+## Common Workflows
 
 ### System Health Check
 
