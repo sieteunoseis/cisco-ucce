@@ -24,17 +24,17 @@ node bin/cisco-ucce.js --help
 
 ```bash
 # Add a cluster
-cisco-ucce cluster add prod
+cisco-ucce config add prod
 
 # Edit config with hosts and credentials
 # Config location: ~/.cisco-ucce/config.json
-cisco-ucce cluster show
+cisco-ucce config show
 
 # Set active cluster
-cisco-ucce cluster use prod
+cisco-ucce config use prod
 
 # Test connectivity
-cisco-ucce cluster test
+cisco-ucce config test
 ```
 
 Config supports `<ss:ID:field>` placeholders for ss-cli integration (optional).

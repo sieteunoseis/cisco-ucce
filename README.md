@@ -46,14 +46,14 @@ npx skills add sieteunoseis/cisco-ucce
 
 ```bash
 # 1. Add a cluster
-cisco-ucce cluster add prod
+cisco-ucce config add prod
 
 # 2. Edit the config with your hosts and credentials
 #    Config location: ~/.cisco-ucce/config.json
-cisco-ucce cluster show
+cisco-ucce config show
 
 # 3. Test connectivity
-cisco-ucce cluster test
+cisco-ucce config test
 
 # 4. Run a health check
 cisco-ucce doctor
@@ -224,15 +224,15 @@ cisco-ucce vvb active-calls --host all           # All VVBs
 cisco-ucce vvb active-calls --watch              # Sparkline monitoring
 ```
 
-### Cluster Management
+### Config Management
 
 ```bash
-cisco-ucce cluster add <name>      # Create skeleton config
-cisco-ucce cluster use <name>      # Switch active cluster
-cisco-ucce cluster list            # Show all clusters
-cisco-ucce cluster show            # Show active cluster config
-cisco-ucce cluster remove <name>   # Delete a cluster
-cisco-ucce cluster test            # Test connectivity
+cisco-ucce config add <name>      # Create skeleton config
+cisco-ucce config use <name>      # Switch active cluster
+cisco-ucce config list            # Show all clusters
+cisco-ucce config show            # Show active cluster config
+cisco-ucce config remove <name>   # Delete a cluster
+cisco-ucce config test            # Test connectivity
 ```
 
 ## Global Flags
