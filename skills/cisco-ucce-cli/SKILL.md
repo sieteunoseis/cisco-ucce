@@ -211,29 +211,93 @@ Pagination: `--page N --page-size N`. Without these flags, auto-paginates all re
 
 All support `--host <hostname>` and `--host all`:
 
-| Command                  | Endpoint                    | Notes                 |
-| ------------------------ | --------------------------- | --------------------- |
-| `diag list-processes`    | ListProcesses               |                       |
-| `diag list-services`     | ListServices                |                       |
-| `diag version`           | GetProductVersion           |                       |
-| `diag license`           | GetProductLicense           |                       |
-| `diag netstat`           | GetNetStat                  |                       |
-| `diag ipconfig`          | GetIPConfig                 | `--args "/all"`       |
-| `diag perf`              | GetPerformanceInformation   | `--component <path>`  |
-| `diag perf-counter`      | GetPerfCounterValue         |                       |
-| `diag trace-level`       | GetTraceLevel               |                       |
-| `diag alarms`            | GetAlarms                   |                       |
-| `diag trace-components`  | ListTraceComponents         |                       |
-| `diag trace-files`       | ListTraceFiles              |                       |
-| `diag log-components`    | ListLogComponents           |                       |
-| `diag log-files`         | ListLogFiles                |                       |
-| `diag app-servers`       | ListAppServers              |                       |
-| `diag config-categories` | ListConfigurationCategories |                       |
-| `diag config-category`   | GetConfigurationCategory    | `<category>` required |
-| `diag traceroute`        | GetTraceRoute               |                       |
-| `diag ping`              | GetPing                     |                       |
-| `diag download-trace`    | DownloadTraceFile           | `<file>` required     |
-| `diag download-log`      | DownloadLogFile             | `<file>` required     |
+| Command                  | Endpoint                    | Notes                               |
+| ------------------------ | --------------------------- | ----------------------------------- |
+| `diag list-processes`    | ListProcesses               |                                     |
+| `diag list-services`     | ListServices                |                                     |
+| `diag version`           | GetProductVersion           |                                     |
+| `diag license`           | GetProductLicense           |                                     |
+| `diag netstat`           | GetNetStat                  |                                     |
+| `diag ipconfig`          | GetIPConfig                 | `--args "/all"`                     |
+| `diag perf`              | GetPerformanceInformation   | `--component <path>`                |
+| `diag perf-counter`      | GetPerfCounterValue         |                                     |
+| `diag trace-level`       | GetTraceLevel               |                                     |
+| `diag alarms`            | GetAlarms                   |                                     |
+| `diag trace-components`  | ListTraceComponents         |                                     |
+| `diag trace-files`       | ListTraceFiles              | `<component>` required, `--hours N` |
+| `diag log-components`    | ListLogComponents           |                                     |
+| `diag log-files`         | ListLogFiles                | `<component>` required, `--hours N` |
+| `diag app-servers`       | ListAppServers              |                                     |
+| `diag config-categories` | ListConfigurationCategories |                                     |
+| `diag config-category`   | GetConfigurationCategory    | `<category>` required               |
+| `diag traceroute`        | GetTraceRoute               |                                     |
+| `diag ping`              | GetPing                     |                                     |
+| `diag download-trace`    | DownloadTraceFile           | `<component> <file>`, `-o path`     |
+| `diag download-log`      | DownloadLogFile             | `<component> <file>`, `-o path`     |
+
+### Trace & Log File Collection
+
+```bash
+# 1. Discover available trace components
+cisco-ucce diag trace-components --host pg1a.example.com
+
+# 2. List trace files for a component (last 12 hours default)
+cisco-ucce diag trace-files "Peripheral Gateway 1A/opc" --host pg1a.example.com
+cisco-ucce diag trace-files "CTI Server 1A/ctisvr" --hours 24
+
+# 3. Download a trace file
+cisco-ucce diag download-trace "Peripheral Gateway 1A/opc" "PG1A_opc_trace.zip" -o ./traces/
+
+# 1. Discover available log components
+cisco-ucce diag log-components --host pg1a.example.com
+
+# 2. List log files (EventLog, Tomcat, ICMDBA, etc.)
+cisco-ucce diag log-files "EventLog" --host pg1a.example.com
+cisco-ucce diag log-files "Tomcat" --hours 24
+
+# 3. Download a log file
+cisco-ucce diag download-log "EventLog" "System.evtx.xml" -o ./logs/system-events.xml
+```
+
+## Server-Side Log Locations
+
+When RDP/SSH access is needed, these are the common file paths:
+
+### PG / Router (Windows)
+
+| Path                                            | Contents                                    |
+| ----------------------------------------------- | ------------------------------------------- |
+| `C:\icm\<instance>\logfiles\`                   | ICM binary trace logs (opc, pim, jgw, etc.) |
+| `C:\icm\<instance>\logfiles\dumplog\`           | Text-converted trace logs                   |
+| `C:\icm\serviceability\diagnostics\logs\`       | Diagnostic Framework service logs           |
+| `C:\icm\serviceability\wsccli\`                 | Unified System CLI tool and output          |
+| `C:\icm\serviceability\wsccli\conf\devices.csv` | Multi-server collection config              |
+
+Use `dumplog <process> /bt HH:MM /et HH:MM /ms /o` on the server to convert binary logs to text.
+
+### AW / HDS (Windows)
+
+| Path                                      | Contents                  |
+| ----------------------------------------- | ------------------------- |
+| `C:\icm\<instance>\logfiles\`             | AW/HDS service logs       |
+| `C:\icm\<instance>\logfiles\dbworker\`    | Database replication logs |
+| `C:\icm\serviceability\diagnostics\logs\` | Diagnostic Framework logs |
+
+### CVP (Windows)
+
+| Path                    | Contents                |
+| ----------------------- | ----------------------- |
+| `%CVP_HOME%\logs\`      | CVP application logs    |
+| `%CVP_HOME%\logs\OAMP\` | OPS Console logs        |
+| `%CVP_HOME%\conf\`      | CVP configuration files |
+
+### Finesse / CUIC / VVB (VOS Linux)
+
+| Path                                        | Contents                          |
+| ------------------------------------------- | --------------------------------- |
+| `/var/log/active/tomcat/logs/`              | Finesse/CUIC web application logs |
+| `/var/log/active/platform/log/`             | Platform service logs             |
+| Use `cisco-dime` CLI for VOS log collection | DIME-based log download           |
 
 ## Cluster Config Structure
 
