@@ -59,7 +59,7 @@ cisco-ucce config test
 cisco-ucce doctor
 ```
 
-## Cluster Configuration
+## Configuration
 
 The config file at `~/.cisco-ucce/config.json` (0600 permissions) groups servers by API service with per-service credentials:
 
@@ -116,7 +116,7 @@ The config file at `~/.cisco-ucce/config.json` (0600 permissions) groups servers
 
 **CVP call servers** use AW credentials for the `/cvp-orm/rest/` API.
 
-## Commands
+## CLI Commands
 
 ### System Health
 
