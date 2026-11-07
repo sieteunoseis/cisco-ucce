@@ -7,7 +7,7 @@
 [![Skills](https://img.shields.io/badge/skills.sh-cisco--ucce--cli-blue)](https://skills.sh/sieteunoseis/cisco-ucce)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-orange?logo=buy-me-a-coffee)](https://buymeacoffee.com/automatebldrs)
 
-Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise (UCCE) 12.6. Covers 5 API services across the full UCCE solution stack.
+Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise (UCCE) 12.6 and 15. Covers 5 API services across the full UCCE solution stack.
 
 | API                   | What you can do                                                                                 |
 | --------------------- | ----------------------------------------------------------------------------------------------- |
@@ -37,10 +37,10 @@ npx skills add sieteunoseis/cisco-ucce
 
 ## Requirements
 
-- Node.js >= 18
+- Node.js >= 20
 - Network access to UCCE infrastructure (AW, Finesse, CVP, PG, VVB servers)
 - HTTP Basic Auth credentials for each API service
-- Self-signed certificates are common — use the `--insecure` flag
+- Self-signed certificates are common — set `"insecure": true` on the cluster or pass `--insecure`
 
 ## Quick Start
 
@@ -121,7 +121,7 @@ The config file at `~/.cisco-ucce/config.json` (0600 permissions) groups servers
 ### System Health
 
 ```bash
-# Health check across all services
+# Health check across all services (every host, authenticated; --format json for automation)
 cisco-ucce doctor
 
 # AW system-wide status (all components, connections, credentials)
@@ -131,10 +131,24 @@ cisco-ucce status
 ### Agent & Queue Monitoring
 
 ```bash
+# One-stop agent overview: team, skill groups (flags default-only agents),
+# attributes, live Finesse state, and the queues Finesse counts them toward.
+# Accepts AW ID, agent name, login name, or peripheral (Finesse) ID.
+cisco-ucce agent show jsmith
+cisco-ucce agent show CMC_MCC.Smith_Jane
+
+# Who is in a skill group (optionally with live Finesse state)
+cisco-ucce skillgroup members HC.Sales.01 --live
+
+# A team's agents with live state
+cisco-ucce finesse team HC.Sales
+
 # All Finesse agent states
 cisco-ucce finesse users
 
-# Live queue stats by ID
+# Live queue stats by skill group name, or Finesse queue ID
+# (Finesse queue ID = skill group peripheral number, not the AW ID)
+cisco-ucce finesse queue HC.Sales.01
 cisco-ucce finesse queue 205001
 
 # Live queue monitoring with sparklines (polls every 5s)
@@ -150,11 +164,13 @@ cisco-ucce finesse phonebooks
 
 ### AW Configuration
 
-All AW config resources support `list` and `get <id>`:
+All AW config resources support `list` and `get <id|name>`. `list --filter <text>` runs a server-side search:
 
 ```bash
 cisco-ucce agent list
 cisco-ucce agent get 5000
+cisco-ucce agent get CMC_MCC.Smith_Jane       # exact name/login; suggests matches otherwise
+cisco-ucce agent list --filter smith
 cisco-ucce skillgroup list
 cisco-ucce calltype list
 cisco-ucce precisionqueue list
@@ -167,7 +183,7 @@ cisco-ucce peripheralgateway list
 cisco-ucce department list              # list only, no get
 cisco-ucce inventory list               # full machine inventory
 cisco-ucce inventory get 5000
-cisco-ucce agentteam list
+cisco-ucce agentteam list               # may need a config-admin AW role (403 otherwise)
 ```
 
 Pagination: `--page N --page-size N`. Without these flags, auto-paginates all records.
@@ -240,13 +256,12 @@ cisco-ucce config test            # Test connectivity
 | Flag                | Description                                             |
 | ------------------- | ------------------------------------------------------- |
 | `--format <fmt>`    | Output format: `table` (default), `json`, `toon`, `csv` |
-| `--host <host>`     | Override target host                                    |
+| `--host <host>`     | Target a configured host (name or prefix); `all` for diag, vvb, cvp properties |
 | `--username <user>` | Override config username                                |
-| `--password <pass>` | Override config password                                |
+| `--password <pass>` | Override config password (visible in `ps`; prefer `CISCO_UCCE_PASSWORD`) |
 | `--cluster <name>`  | Use specific cluster                                    |
 | `--insecure`        | Skip TLS verification                                   |
 | `--no-audit`        | Disable audit logging                                   |
-| `--debug`           | Enable debug logging                                    |
 
 ## Output Formats
 
@@ -255,7 +270,7 @@ cisco-ucce config test            # Test connectivity
 cisco-ucce finesse teams
 
 # JSON (pipe-friendly)
-cisco-ucce agent list --format json | jq '.[] | select(.agentTeamName == "Sales")'
+cisco-ucce agent list --format json | jq '.[] | select(.agentTeam == "Sales")'
 
 # CSV (spreadsheets, reporting)
 cisco-ucce skillgroup list --format csv > skillgroups.csv
@@ -266,7 +281,7 @@ watch -n 30 'cisco-ucce finesse queue 205001 --format json | jq .callsInQueue'
 
 ## Audit Trail
 
-All API calls are logged to `~/.cisco-ucce/audit.jsonl` (never logs credentials). 10MB auto-rotation.
+All API calls (successes and failures, with status) are logged to `~/.cisco-ucce/audit.jsonl` (mode 0600, never logs credentials). 10MB auto-rotation. Disable per command with `--no-audit`.
 
 ## Giving Back
 

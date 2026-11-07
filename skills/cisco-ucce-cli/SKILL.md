@@ -1,6 +1,6 @@
 ---
 name: cisco-ucce-cli
-description: Use when monitoring or troubleshooting Cisco UCCE 12.6 — agent states, queue stats, PG diagnostics, CVP config, VVB calls, system health checks, and infrastructure inventory. Covers all cisco-ucce CLI operations across AW, Finesse, CVP, Diagnostic Portal, and VVB APIs.
+description: Use when monitoring or troubleshooting Cisco UCCE 12.6/15 — agent states, agent skill-group audits, queue stats, PG diagnostics, CVP config, VVB calls, system health checks, and infrastructure inventory. Covers all cisco-ucce CLI operations across AW, Finesse, CVP, Diagnostic Portal, and VVB APIs.
 license: MIT
 metadata:
   author: sieteunoseis
@@ -9,7 +9,7 @@ metadata:
 
 # Cisco UCCE CLI
 
-Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise 12.6. Covers 5 API services: AW Config/Status, Finesse, CVP, Diagnostic Portal, and VVB.
+Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise 12.6 and 15. Covers 5 API services: AW Config/Status, Finesse, CVP, Diagnostic Portal, and VVB.
 
 ## Setup
 
@@ -43,7 +43,7 @@ Config supports `<ss:ID:field>` placeholders for ss-cli integration (optional).
 
 ```
 --format table|json|toon|csv   (default: table)
---host <host>                  (override target host)
+--host <host>                  (configured host name/prefix; "all" for diag, vvb, cvp properties)
 --cluster <name>               (use specific cluster)
 --insecure                     (skip TLS verification)
 --no-audit                     (disable audit logging)
@@ -66,11 +66,31 @@ cisco-ucce diag version --host all
 
 ### Agent & Queue Monitoring
 
+**"Agent not showing on a queue / dashboard" → start with `agent show`.** Queue stats
+(Finesse and Aceyus/CUIC) count skill-group membership, not team. An agent on the
+right team but only in `<team>.Default` won't route or count; `agent show` flags it.
+
+```bash
+# Team, skill groups (warns if default-only), attributes, live Finesse state,
+# and the Finesse queues the agent counts toward. AW ID, name, login or peripheral ID.
+cisco-ucce agent show jsmith
+
+# Members of a skill group, with live state
+cisco-ucce skillgroup members HC.Sales.01 --live
+
+# Team roster with live state (Finesse; AW agentteam may 403)
+cisco-ucce finesse team HC.Sales
+```
+
+Name lookups require an exact name/login match; otherwise the CLI lists candidates (AW search is fuzzy).
+
 ```bash
 # All agent states from Finesse
 cisco-ucce finesse users
 
-# Queue stats by ID (IDs = skill group IDs from AW)
+# Queue stats by skill group name, or Finesse queue ID
+# (Finesse queue ID = skill group peripheralNumber, NOT the AW skill group ID)
+cisco-ucce finesse queue HC.Sales.01
 cisco-ucce finesse queue 205001
 
 # List all teams
@@ -80,10 +100,10 @@ cisco-ucce finesse teams
 cisco-ucce finesse reason-codes --category NOT_READY
 
 # Find agents by team (pipe JSON to jq)
-cisco-ucce agent list --format json | jq '.[] | select(.agentTeamName == "IT.CALL")'
+cisco-ucce agent list --format json | jq '.[] | select(.agentTeam == "IT.CALL")'
 
 # Count agents per team
-cisco-ucce agent list --format json | jq 'group_by(.agentTeamName) | .[] | {team: .[0].agentTeamName, count: length}'
+cisco-ucce agent list --format json | jq 'group_by(.agentTeam) | .[] | {team: .[0].agentTeam, count: length}'
 ```
 
 ### PG / Router Diagnostics
@@ -132,7 +152,9 @@ cisco-ucce cvp servers
 cisco-ucce cvp properties --host cvp1a.example.com
 ```
 
-CVP OPS (`/cvp-config/`) uses a dedicated API user. CVP call servers (`/cvp-orm/rest/`) use AW credentials.
+CVP OPS (`/cvp-config/`) uses a dedicated API user, which must have the OAMP role **ServiceabilityAdministrationUserRole** (otherwise every call is a bare 401). CVP call servers (`/cvp-orm/rest/`) use AW credentials.
+
+Finesse admin APIs only answer on the primary node; side B returns 403.
 
 ### VVB Active Calls
 
@@ -204,6 +226,8 @@ All support `list` and `get <id>` (except `department` which is list-only):
 | `department`           | department           | List only, no get             |
 | `inventory`            | machineinventory     | Full solution inventory       |
 | `agentteam`            | agentteam            | May return 403 for some users |
+
+`get` accepts an ID or exact name. `list --filter <text>` runs AW's server-side search. Agent rows include `firstName`, `lastName`, `userName` and `skillGroups`.
 
 Pagination: `--page N --page-size N`. Without these flags, auto-paginates all records.
 

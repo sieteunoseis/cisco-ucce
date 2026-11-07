@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.0] - 2026-11-07
+
+### Added
+- `agent show <id|name|login>`: team, skill groups (warns when an agent is only in a `.Default` group), attributes, live Finesse state, and the Finesse queues the agent counts toward.
+- `skillgroup members <id|name> [--live]`: agents in a skill group, optionally with live Finesse state; prints the Finesse queue ID.
+- `finesse team <id|name>`: team roster with live state (works where AW `agentteam` returns 403).
+- `finesse queue <name>`: look up queue stats by skill group name (Finesse queue ID = skill group peripheral number).
+- AW `get` accepts an exact name/login; `list --filter <text>` uses AW server-side search. Ambiguous or partial matches list candidates instead of guessing.
+- `doctor` checks every AW/Finesse host, proves Finesse admin login on the primary, reports Finesse/CTI status and non-OK AW components, checks Secret Server, and supports `--format json`.
+- Per-service hints on 401/403 (e.g. CVP needs ServiceabilityAdministrationUserRole; Finesse admin APIs are primary-only).
+
+### Changed
+- AW rows keep nested data: `firstName`, `lastName`, `userName` (from person) and `skillGroups` / other named lists.
+- Finesse nested fields render as text instead of `[object Object]`; epoch `*Time` fields become ISO timestamps.
+- A single wide record prints as key/value rows; table/CSV columns are the union of all rows.
+- Unknown `--format` values are rejected.
+- Diagnostic Portal "No … available" replies (e.g. no alarms) are treated as empty results, not errors.
+- README and skill updated for UCCE 15.
+
 ## [1.1.5] - 2026-11-07
 
 ### Fixed
