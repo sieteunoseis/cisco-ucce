@@ -67,4 +67,18 @@ describe("http utils", () => {
       expect(headers.Authorization).toMatch(/^Basic /);
     });
   });
+
+  it("insecure mode suppresses only the TLS warning", () => {
+    const original = process.emitWarning;
+    const seen = [];
+    process.emitWarning = (w) => seen.push(String(w?.message ?? w));
+    try {
+      createClient({ host: "x.test", username: "u", password: "p", insecure: true });
+      process.emitWarning("Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0'");
+      process.emitWarning("some other warning");
+    } finally {
+      process.emitWarning = original;
+    }
+    expect(seen).toEqual(["some other warning"]);
+  });
 });
