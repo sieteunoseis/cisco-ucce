@@ -1,9 +1,8 @@
 {
   "name": "cisco-ucce",
-  "version": "1.1.4",
-  "description": "Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise (UCCE) 12.6",
+  "version": "1.1.5",
+  "description": "Read-only CLI for monitoring and troubleshooting Cisco Unified Contact Center Enterprise (UCCE) 12.6 / 15",
   "type": "module",
-  "main": "index.js",
   "bin": {
     "cisco-ucce": "./bin/cisco-ucce.js"
   },
@@ -39,7 +38,7 @@
     "url": "https://buymeacoffee.com/automatebldrs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "files": [
     "bin/",
@@ -51,7 +50,6 @@
     "cli-table3": "^0.6.5",
     "commander": "^14.0.3",
     "csv-stringify": "^6.7.0",
-    "update-notifier": "^7.3.1",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {

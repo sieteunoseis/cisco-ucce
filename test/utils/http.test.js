@@ -58,7 +58,11 @@ describe("http utils", () => {
       }));
       vi.stubGlobal("fetch", fetchMock);
 
-      const client = createClient({ host: "cvp.test", username: "u", password: "p" });
+      const client = createClient({
+        host: "cvp.test",
+        username: "u",
+        password: "p",
+      });
       client.defaults.headers["Accept"] = "application/json";
       await client.get("/cvp-config/version");
 
@@ -73,8 +77,15 @@ describe("http utils", () => {
     const seen = [];
     process.emitWarning = (w) => seen.push(String(w?.message ?? w));
     try {
-      createClient({ host: "x.test", username: "u", password: "p", insecure: true });
-      process.emitWarning("Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0'");
+      createClient({
+        host: "x.test",
+        username: "u",
+        password: "p",
+        insecure: true,
+      });
+      process.emitWarning(
+        "Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0'",
+      );
       process.emitWarning("some other warning");
     } finally {
       process.emitWarning = original;
@@ -96,7 +107,11 @@ describe("http utils", () => {
     it("encodes params into the query string", async () => {
       const fetchMock = vi.fn(async () => okResponse());
       vi.stubGlobal("fetch", fetchMock);
-      const client = createClient({ host: "aw.test", username: "u", password: "p" });
+      const client = createClient({
+        host: "aw.test",
+        username: "u",
+        password: "p",
+      });
       await client.get("/unifiedconfig/config/agent", {
         params: { startIndex: 100, resultsPerPage: 100, skip: undefined },
       });
@@ -106,8 +121,15 @@ describe("http utils", () => {
     });
 
     it("returns an ArrayBuffer for responseType arraybuffer", async () => {
-      vi.stubGlobal("fetch", vi.fn(async () => okResponse("abc")));
-      const client = createClient({ host: "pg.test", username: "u", password: "p" });
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => okResponse("abc")),
+      );
+      const client = createClient({
+        host: "pg.test",
+        username: "u",
+        password: "p",
+      });
       const res = await client.get("/x", { responseType: "arraybuffer" });
       expect(res.data).toBeInstanceOf(ArrayBuffer);
       expect(res.data.byteLength).toBe(3);
