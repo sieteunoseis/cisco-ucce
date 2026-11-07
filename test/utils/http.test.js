@@ -81,4 +81,36 @@ describe("http utils", () => {
     }
     expect(seen).toEqual(["some other warning"]);
   });
+
+  describe("createClient request options", () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    const okResponse = (body = "<x/>") => ({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/xml" }),
+      text: async () => body,
+      arrayBuffer: async () => new TextEncoder().encode(body).buffer,
+    });
+
+    it("encodes params into the query string", async () => {
+      const fetchMock = vi.fn(async () => okResponse());
+      vi.stubGlobal("fetch", fetchMock);
+      const client = createClient({ host: "aw.test", username: "u", password: "p" });
+      await client.get("/unifiedconfig/config/agent", {
+        params: { startIndex: 100, resultsPerPage: 100, skip: undefined },
+      });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        "https://aw.test/unifiedconfig/config/agent?startIndex=100&resultsPerPage=100",
+      );
+    });
+
+    it("returns an ArrayBuffer for responseType arraybuffer", async () => {
+      vi.stubGlobal("fetch", vi.fn(async () => okResponse("abc")));
+      const client = createClient({ host: "pg.test", username: "u", password: "p" });
+      const res = await client.get("/x", { responseType: "arraybuffer" });
+      expect(res.data).toBeInstanceOf(ArrayBuffer);
+      expect(res.data.byteLength).toBe(3);
+    });
+  });
 });
